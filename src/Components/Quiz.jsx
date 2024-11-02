@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import QUESTIONS from "../Questions";
+import QuestionTimer from "./QuestionTimer";
 
 const Quiz = () => {
   const [useranswers, setUserAnswers] = useState([]);
@@ -39,6 +40,12 @@ const Quiz = () => {
   return (
     <div className="flex justify-center items-center">
       <div>
+        <QuestionTimer
+          key={activeQuestionIndex} // This key props helps to remount this component, leads to resetting of setInterval and setTimeout function
+          //Whenever this key prop value is change, it remounts the component
+          timeout={5000}
+          onTimeout={() => handleSelectAnswer(null)} //Here null means no answer is selected , since this function will executes when timer wil be up!
+        />
         <h2 className="my-5">{QUESTIONS[activeQuestionIndex].text}</h2>
         <ul>
           {shuffledAnswers.map((ans) => (
