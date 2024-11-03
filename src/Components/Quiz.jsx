@@ -1,63 +1,92 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import QUESTIONS from "../Questions";
 import QuestionTimer from "./QuestionTimer";
 
 const Quiz = () => {
   const [useranswers, setUserAnswers] = useState([]);
-  const activeQuestionIndex = useranswers.length;
-  //Checking useranswers array length and questions array length
+  const [answerState, setAnswerState] = useState("");
+  const [score, setScore] = useState(0);
+  const [shuffledAnswers, setShuffledAnswers] = useState([]);
+
+  console.log("quiz render");
+  const activeQuestionIndex =
+    answerState === "" ? useranswers.length : useranswers.length - 1;
+
   const quizIsComplete = activeQuestionIndex === QUESTIONS.length;
-  // const [isTimerOut, setIsTimerOut] = useState(false);
 
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     setIsTimerOut(true);
-  //   }, 10000);
-  // }, []);
+  const handleSelectAnswer = useCallback(
+    (selected) => {
+      setAnswerState("answered");
+      setUserAnswers((prev) => [...prev, selected]);
 
-  // if (isTimerOut) {
-  //   return (
-  //     <div>
-  //       <h1>Quiz is over</h1>
-  //     </div>
-  //   );
-  // }
+      setTimeout(() => {
+        if (selected === QUESTIONS[activeQuestionIndex].answers[0]) {
+          setAnswerState("correct");
+          setScore((prev) => prev + 1);
+        } else {
+          setAnswerState("wrong");
+        }
+        setTimeout(() => {
+          setAnswerState("");
+        }, 2000);
+      }, 1000);
+    },
+    [activeQuestionIndex]
+  );
 
-  function handleSelectAnswer(selected) {
-    setUserAnswers((prev) => {
-      return [...prev, selected];
-    });
-  }
+  // Shuffling answers
+  useEffect(() => {
+    if (!quizIsComplete) {
+      // Ensure this runs only when quiz is not complete
+      const shuffled = [...QUESTIONS[activeQuestionIndex].answers];
+      shuffled.sort(() => Math.random() - 0.5);
+      setShuffledAnswers(shuffled);
+    }
+  }, [activeQuestionIndex, quizIsComplete]);
 
+  // Render the component only if the quiz is not complete
   if (quizIsComplete) {
-    return <div>Quiz is complete</div>;
+    return (
+      <>
+        <div>Quiz is complete</div>
+        <div>
+          Your score is {score}/{QUESTIONS.length}
+        </div>
+      </>
+    );
   }
-
-  //Shuffling answers
-  const shuffledAnswers = [...QUESTIONS[activeQuestionIndex].answers];
-  shuffledAnswers.sort(() => Math.random() - 0.5); // Math.random - 0.5 will generate random positive or negative numbrers
 
   return (
     <div className="flex justify-center items-center">
       <div>
         <QuestionTimer
-          key={activeQuestionIndex} // This key props helps to remount this component, leads to resetting of setInterval and setTimeout function
-          //Whenever this key prop value is change, it remounts the component
+          key={activeQuestionIndex}
           timeout={5000}
-          onTimeout={() => handleSelectAnswer(null)} //Here null means no answer is selected , since this function will executes when timer wil be up!
+          onTimeout={() => handleSelectAnswer(null)}
         />
         <h2 className="my-5">{QUESTIONS[activeQuestionIndex].text}</h2>
         <ul>
-          {shuffledAnswers.map((ans) => (
-            <li key={ans}>
-              <button
-                className="mb-1 hover:bg-blue-200"
-                onClick={() => handleSelectAnswer(ans)}
-              >
-                {ans}
-              </button>
-            </li>
-          ))}
+          {shuffledAnswers.map((ans) => {
+            const isSelected = useranswers[useranswers.length - 1] === ans;
+            let cssClass = "mb-1 hover:bg-blue-200";
+
+            if (answerState === "correct" && isSelected) {
+              cssClass = "mb-1 bg-green-200";
+            } else if (answerState === "wrong" && isSelected) {
+              cssClass = "mb-1 bg-red-200";
+            }
+
+            return (
+              <li key={ans}>
+                <button
+                  className={cssClass}
+                  onClick={() => handleSelectAnswer(ans)}
+                >
+                  {ans}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
