@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import QUESTIONS from "../Questions";
 import QuestionTimer from "./QuestionTimer";
+import Summary from "./Summary";
 
 const Quiz = () => {
-  const [useranswers, setUserAnswers] = useState([]);
+  const [userAnswers, setUserAnswers] = useState([]);
   const [answerState, setAnswerState] = useState("");
-  const [score, setScore] = useState(0);
+  //const [score, setScore] = useState(0);
   const [shuffledAnswers, setShuffledAnswers] = useState([]);
 
   console.log("quiz render");
   const activeQuestionIndex =
-    answerState === "" ? useranswers.length : useranswers.length - 1;
+    answerState === "" ? userAnswers.length : userAnswers.length - 1;
 
   const quizIsComplete = activeQuestionIndex === QUESTIONS.length;
 
@@ -22,7 +23,6 @@ const Quiz = () => {
       setTimeout(() => {
         if (selected === QUESTIONS[activeQuestionIndex].answers[0]) {
           setAnswerState("correct");
-          setScore((prev) => prev + 1);
         } else {
           setAnswerState("wrong");
         }
@@ -48,10 +48,7 @@ const Quiz = () => {
   if (quizIsComplete) {
     return (
       <>
-        <div>Quiz is complete</div>
-        <div>
-          Your score is {score}/{QUESTIONS.length}
-        </div>
+        <Summary userAnswers={userAnswers} />
       </>
     );
   }
@@ -67,7 +64,7 @@ const Quiz = () => {
         <h2 className="my-5">{QUESTIONS[activeQuestionIndex].text}</h2>
         <ul>
           {shuffledAnswers.map((ans) => {
-            const isSelected = useranswers[useranswers.length - 1] === ans;
+            const isSelected = userAnswers[userAnswers.length - 1] === ans;
             let cssClass = "mb-1 hover:bg-blue-200";
 
             if (answerState === "correct" && isSelected) {
